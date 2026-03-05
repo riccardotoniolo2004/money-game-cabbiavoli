@@ -31,10 +31,24 @@
             <button onclick="loginUser()" class="bg-gray-700 hover:bg-gray-600 py-2 rounded text-[10px] font-bold uppercase transition">Sblocca Profilo</button>
         </div>
 
-        <div id="edit-profile-zone" class="hidden flex flex-col gap-2 border-t border-blue-800 pt-3 text-center">
+        <div id="edit-profile-zone" class="hidden flex flex-col gap-3 border-t border-blue-800 pt-3 text-center">
             <label class="text-[9px] uppercase text-gray-400 font-bold italic">Carica foto dalla galleria:</label>
             <input type="file" id="avatar-file" accept="image/*" class="text-xs text-gray-500">
             <button onclick="updateAvatarFromFile()" class="w-full mt-2 bg-blue-700 hover:bg-blue-600 py-2 rounded text-[10px] font-bold uppercase transition">Aggiorna Profilo</button>
+    
+            <hr class="border-gray-800 my-2">
+            <div class="bg-black/40 p-3 rounded border border-blue-900/50 text-left">
+                <h3 class="text-[10px] font-bold text-blue-400 uppercase mb-2 tracking-widest text-center">📜 Registra Atto (TDI)</h3>
+                <div class="flex flex-col gap-2">
+                    <input type="text" id="contract-title" placeholder="Nome Accordo (es: Patto di Ferro)" class="bg-gray-900 border border-gray-700 p-2 rounded text-[10px] outline-none text-white">
+                    <select id="contract-type" class="bg-gray-900 border border-gray-700 p-2 rounded text-[10px] text-white">
+                        <option value="Contratto">Contratto Ufficiale</option>
+                        <option value="SPA">S.p.A. (Max 4 soci)</option>
+                    </select>
+                    <input type="text" id="contract-members" placeholder="Nomi soci/contraenti" class="bg-gray-900 border border-gray-700 p-2 rounded text-[10px] outline-none text-white">
+                    <button onclick="createOfficialAct()" class="bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-2 rounded text-[10px] uppercase shadow-lg transition">Firma e Paga 2 BGC</button>
+                </div>
+            </div>
             <button onclick="logoutUser()" class="text-[9px] text-gray-500 uppercase mt-1 underline">Esci</button>
         </div>
     </section>
@@ -119,42 +133,62 @@
             try {
                 const { data: pData } = await supabaseClient.from('players').select('*');
                 const { data: sData } = await supabaseClient.from('system_data').select('*').single();
+                
                 if (pData) players = pData;
                 if (sData) tdiBalance = sData.tdi_balance;
                 updateUI();
             } catch (err) { console.error("Errore sincronizzazione:", err); }
         }
-
-        function updateUI() {
+        async function updateUI() {
             const list = document.getElementById('player-list');
             const selector = document.getElementById('user-selector');
             const selectorAdmin = document.getElementById('admin-player-select');
-            
+    
             const currentSel = selector.value;
             const currentAdminSel = selectorAdmin.value;
-            
+        
+    // 1. NUOVA RIGA: Recuperiamo i contratti dal database
+            const { data: activeContracts } = await supabaseClient.from('contracts').select('*');
+
             list.innerHTML = '';
             selector.innerHTML = '<option value="">Chi sei?</option>';
             selectorAdmin.innerHTML = '<option value="">Seleziona Giocatore...</option>';
-            
+    
             let m0 = 0;
             const maxBal = Math.max(...players.map(p => p.balance));
             const allSame = players.length > 0 && players.every(p => p.balance === players[0].balance);
 
             players.sort((a, b) => b.balance - a.balance).forEach(p => {
                 m0 += p.balance;
+                
+        // 2. NUOVA LOGICA: Filtriamo i contratti di questo specifico giocatore (p)
+                const userActs = activeContracts ? activeContracts.filter(c => 
+                    c.members.toLowerCase().includes(p.name.toLowerCase()) || c.creator_id == p.id
+                ) : [];
+
+        // Trasformiamo i contratti in piccole etichette blu
+                let actsHtml = userActs.map(c => 
+                    `<span class="bg-blue-900/40 text-blue-300 px-1 rounded text-[7px] border border-blue-800 mr-1 font-bold italic">${c.title}</span>`
+                ).join('');
+
                 let statusText = "Cittadino", statusClass = "text-gray-500";
                 if (p.balance <= 0) { statusText = "Poraccio"; statusClass = "text-red-500 font-bold italic"; }
                 else if (p.balance === maxBal && !allSame) { statusText = "Riccone"; statusClass = "text-yellow-500 font-bold"; }
 
+        // 3. AGGIORNAMENTO HTML: Inseriamo ${actsHtml} sotto il nome
                 list.innerHTML += `
                     <div class="flex justify-between items-center bg-gray-900/50 p-3 rounded-lg border border-gray-800">
                         <div class="flex items-center gap-3">
                             <img src="${p.avatar || 'https://www.gravatar.com/avatar/0?d=mp'}" class="avatar">
-                            <div><span class="text-sm font-bold">${p.name}</span><p class="text-[9px] uppercase tracking-tighter ${statusClass}">${statusText}</p></div>
+                            <div>
+                                <span class="text-sm font-bold">${p.name}</span>
+                                <p class="text-[9px] uppercase tracking-tighter ${statusClass}">${statusText}</p>
+                                <div class="mt-1 flex flex-wrap">${actsHtml}</div> </div>
                         </div>
                         <div class="text-right font-mono font-bold accent text-lg">${p.balance} <span class="text-[9px] opacity-30 italic">BGC</span></div>
                     </div>`;
+            
+        // ... resto della funzione (popolamento selettori) ...
                 const opt = document.createElement('option');
                 opt.value = p.id; opt.innerText = p.name;
                 if (p.id == currentSel) opt.selected = true;
@@ -165,6 +199,7 @@
                 if (p.id == currentAdminSel) optAdmin.selected = true;
                 selectorAdmin.appendChild(optAdmin);
             });
+    
             document.getElementById('total-m0').innerText = m0;
             document.getElementById('tdi-total').innerText = tdiBalance;
         }
@@ -246,6 +281,37 @@
             entry.className = `log-entry p-2 rounded ${classes}`;
             entry.innerText = text;
             log.prepend(entry);
+        }
+        // ... riga 190: fine funzione addLogEntry
+
+        async function createOfficialAct() {
+            const userId = document.getElementById('user-selector').value;
+            const title = document.getElementById('contract-title').value;
+            const type = document.getElementById('contract-type').value;
+            const members = document.getElementById('contract-members').value;
+            const player = players.find(p => p.id == userId);
+
+            if (!title || !members) return alert("Dati incompleti!");
+            if (player.balance < 2) return alert("Saldo insufficiente per la marca da bollo (2 BGC)!");
+
+            // Sottrazione 2 BGC e incremento TDI Banca [cite: 39, 113]
+            await supabaseClient.from('players').update({ balance: player.balance - 2 }).eq('id', userId);
+            await supabaseClient.from('system_data').update({ tdi_balance: tdiBalance + 2 }).eq('id', 1);
+
+            // Registrazione atto (Tabella 'contracts')
+            const { error } = await supabaseClient.from('contracts').insert([{ 
+                title: title, 
+                type: type, 
+                creator_id: userId, 
+                members: members,
+                expires_at: new Date(new Date().setHours(23,59,59)) 
+            }]);
+
+            if (!error) {
+                addLogEntry(`[GAZZETTA]: Registrato ${type} "${title}" tra: ${members}.`, "text-blue-400 border-blue-500 font-bold bg-blue-900/10");
+                alert("Atto Registrato!");
+                fetchData();
+            }
         }
 
         // Sincronizzazione automatica ogni 10 secondi
