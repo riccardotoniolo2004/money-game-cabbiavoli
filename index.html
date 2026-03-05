@@ -17,92 +17,111 @@
 
     <header class="text-center mb-6">
         <h1 class="text-3xl font-bold accent tracking-widest uppercase">The Money Game</h1>
-        <p class="text-[10px] opacity-60 uppercase tracking-widest">Protocollo Operativo Cabbiavoli [cite: 24]</p>
+        <p class="text-[10px] opacity-60 uppercase tracking-widest">Protocollo Operativo Cabbiavoli</p>
     </header>
 
     <section class="card p-4 rounded-xl mb-6 border-blue-900 bg-blue-900/10 shadow-lg">
         <h2 class="text-[11px] font-bold mb-3 text-blue-400 uppercase tracking-widest">👤 Area Personale</h2>
         <div class="flex flex-col gap-4">
             <select id="user-selector" class="bg-gray-900 border border-gray-700 p-2 rounded text-xs outline-none focus:border-blue-500">
-                <option value="">Seleziona il tuo nome...</option>
-                </select>
-            <div class="flex flex-col gap-2">
+                <option value="">Chi sei?</option>
+            </select>
+            
+            <div id="login-zone" class="flex flex-col gap-2">
+                <input type="password" id="user-pass" placeholder="Password Personale" class="bg-gray-900 border border-gray-700 p-2 rounded text-xs outline-none focus:border-blue-500">
+                <button onclick="loginUser()" class="bg-gray-700 hover:bg-gray-600 py-2 rounded text-[10px] font-bold uppercase transition">Sblocca Profilo</button>
+            </div>
+
+            <div id="edit-profile-zone" class="hidden flex flex-col gap-2 border-t border-blue-800 pt-3">
                 <label for="avatar-file" class="text-[9px] uppercase text-gray-400 font-bold">Carica foto dalla galleria:</label>
                 <input type="file" id="avatar-file" accept="image/*" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500">
                 <button onclick="updateAvatarFromFile()" class="w-full mt-2 bg-blue-700 hover:bg-blue-600 py-2 rounded text-[10px] font-bold uppercase transition">Aggiorna Profilo</button>
+                <button onclick="logoutUser()" class="text-[9px] text-gray-500 uppercase mt-1 underline">Esci</button>
             </div>
         </div>
     </section>
 
     <section class="card p-5 rounded-xl mb-6 border-yellow-900 shadow-2xl">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xs font-bold text-yellow-500 uppercase tracking-wider">🏛️ Banca Centrale [cite: 108]</h2>
+            <h2 class="text-xs font-bold text-yellow-500 uppercase tracking-wider">🏛️ Banca Centrale</h2>
             <input id="bank-pass" type="password" placeholder="Password" class="bg-black text-[10px] p-2 border border-gray-800 rounded w-24 outline-none focus:border-yellow-600">
         </div>
         
         <div class="grid grid-cols-2 gap-3 mb-6 text-center text-xs">
             <div class="p-3 bg-black/50 rounded-lg border border-gray-800">
-                <p class="opacity-50 mb-1">Massa M0 [cite: 104]</p>
+                <p class="opacity-50 mb-1">Massa M0</p>
                 <p id="total-m0" class="text-xl font-mono accent">0</p>
             </div>
             <div class="p-3 bg-black/50 rounded-lg border border-green-900">
-                <p class="text-green-600 mb-1">TDI (Bolli) [cite: 39]</p>
+                <p class="text-green-600 mb-1">TDI (Bolli)</p>
                 <p id="tdi-total" class="text-xl font-mono text-green-400">0</p>
             </div>
         </div>
 
         <div class="space-y-3">
             <select id="news-preset" class="w-full bg-gray-900 border border-gray-700 p-2 rounded text-xs">
-                <option value="">-- Seleziona Flash News [cite: 144] --</option>
-                <option value="ROBIN">Decreto Robin Hood [cite: 145]</option>
-                <option value="OPA">Opa Ostile [cite: 147]</option>
-                <option value="BOLLA">Bolla Speculativa [cite: 149]</option>
-                <option value="COPRIFUOCO">Coprifuoco [cite: 151]</option>
-                <option value="AUSTERITY">Austerity del Re [cite: 153]</option>
+                <option value="">-- Seleziona Flash News --</option>
+                <option value="ROBIN">Decreto Robin Hood</option>
+                <option value="OPA">Opa Ostile</option>
+                <option value="BOLLA">Bolla Speculativa</option>
+                <option value="COPRIFUOCO">Coprifuoco</option>
+                <option value="AUSTERITY">Austerity del Re</option>
             </select>
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="publishFlash()" class="bg-blue-800 hover:bg-blue-700 rounded py-2 text-[10px] font-bold uppercase">Flash News</button>
-                <button onclick="applyTax()" class="bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-2 rounded text-[10px] uppercase">Tassa Soggiorno [cite: 29]</button>
+                <button onclick="applyTax()" class="bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-2 rounded text-[10px] uppercase">Tassa Soggiorno</button>
             </div>
-            <button onclick="addTDI()" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 rounded text-[10px] uppercase">+2 BGC TDI [cite: 39]</button>
+            <button onclick="addTDI()" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 rounded text-[10px] uppercase">+2 BGC TDI</button>
         </div>
     </section>
 
     <section class="card p-4 rounded-xl mb-6 shadow-2xl bg-black/30">
         <h2 class="text-[11px] font-bold mb-3 accent italic tracking-widest uppercase">📜 Gazzetta Ufficiale</h2>
         <div id="public-log" class="text-[11px] space-y-2 h-32 overflow-y-auto bg-black/60 p-4 rounded-lg border border-gray-800 font-mono">
-            <div class="log-entry text-gray-500 italic">[SISTEMA]: Benvenuti al Money Game: Cabbiavoli Edition. Nessun rimborso[cite: 31].</div>
+            <div class="log-entry text-gray-500 italic">[SISTEMA]: Benvenuti al Money Game: Cabbiavoli Edition. Nessun rimborso.</div>
         </div>
     </section>
 
     <section class="card p-4 rounded-xl">
-        <h2 class="text-[11px] font-bold mb-4 uppercase tracking-widest text-gray-400 border-b border-gray-800 pb-2 text-center">Anagrafe dei Cittadini [cite: 186]</h2>
+        <h2 class="text-[11px] font-bold mb-4 uppercase tracking-widest text-gray-400 border-b border-gray-800 pb-2 text-center">Anagrafe dei Cittadini</h2>
         <div id="player-list" class="space-y-3"></div>
     </section>
 
     <script>
-        const BANK_PASSWORD = "CABBIAVOLI2026";
-        const playerNames = [
-            "Elisa Prastaro", "Stefano Selleri", "Tommaso Ronzi", "Tommaso Ripamonti",
-            "Vittoria Rametta", "Stefano Rovere", "Giovanni Pressacco", "Riccardo Toniolo",
-            "Leonardo Poschi", "Andrea Riva", "Cesare Puccioni", "Chiara Zanetti", "Ludovica Serra"
+        const BANK_PASSWORD = "Giulia122!";
+        
+        const playersData = [
+            { name: "Elisa Prastaro", pass: "ELI859567" },
+            { name: "Stefano Selleri", pass: "STE785599" },
+            { name: "Tommaso Ronzi", pass: "RON105542" },
+            { name: "Tommaso Ripamonti", pass: "RIP791165" },
+            { name: "Vittoria Rametta", pass: "VIT795254" },
+            { name: "Stefano Rovere", pass: "ROV791988" },
+            { name: "Giovanni Pressacco", pass: "GIO797015" },
+            { name: "Riccardo Toniolo", pass: "RIC748097" },
+            { name: "Leonardo Poschi", pass: "LEO970654" },
+            { name: "Andrea Riva", pass: "AND278746" },
+            { name: "Cesare Puccioni", pass: "CES945145" },
+            { name: "Chiara Zanetti", pass: "CHI515487" },
+            { name: "Ludovica Serra", pass: "LUD874547" }
         ];
 
-        let players = playerNames.map((name, index) => ({
+        let players = playersData.map((p, index) => ({
             id: index,
-            name: name,
-            balance: 50, // Dotazione iniziale [cite: 106]
+            name: p.name,
+            pass: p.pass,
+            balance: 50,
             avatar: ""
         }));
 
         let tdiBalance = 0;
 
         const DECRETI_TEXT = {
-            ROBIN: "DECRETO ROBIN HOOD: Sfida secca Sasso-Carta-Forbice tra poveri e ricchi! [cite: 145]",
-            OPA: "OPA OSTILE: Compra il diritto di parola per 15 BGC! [cite: 147]",
-            BOLLA: "BOLLA SPECULATIVA: 3 Titoli di Stato disponibili a 10 BGC ciascuno! [cite: 149]",
-            COPRIFUOCO: "COPRIFUOCO: Trasferimenti tra giocatori tassati al 50%! [cite: 151]",
-            AUSTERITY: "AUSTERITY DEL RE: Attività (telefono, sedie) a pagamento per 15 min! [cite: 153]"
+            ROBIN: "ATTENZIONE! La Banca Centrale annuncia una correzione di mercato. Da questo momento e per i prossimi 30 minuti, chiunque possieda meno di 15 BGC può sfidare un giocatore che ne possiede più di 40 in una sfida 'Sasso-Carta-Forbice' secca. Se il povero vince, ruba 5 BGC. Se perde, non succede nulla. Il ricco non può rifiutare la sfida!",
+            OPA: "OFLASH NEWS! È stata aperta una finestra di acquisizione. Per la prossima ora, è legale 'comprare' il diritto di parola di un altro giocatore. Se versi alla Banca 15 BGC, puoi nominare un avversario: quella persona non potrà partecipare a nessuna trattativa o accordo per i prossimi 20 minuti. Il bersaglio può annullare l'effetto solo pagando alla Banca una 'Tassa di Svincolo' di 20 BGC.",
+            BOLLA: "URGENTE! La Banca Centrale ha emesso 3 'Titoli di Stato' speciali. Questi titoli costano 10 BGC l'uno. Chi li acquista ora, potrà usarli stasera durante il Casinò Clandestino per raddoppiare una qualsiasi vincita. Attenzione: ci sono solo 3 titoli disponibili! Vince chi arriva per primo con i soldi in mano davanti alla Banca!",
+            COPRIFUOCO: "EDITTO NOTTURNO! Dalle 22:00 a mezzanotte, la Banca chiude i forzieri. In questo lasso di tempo, i trasferimenti di denaro tra giocatori sono tassati del 50%. Se vuoi dare 10 BGC a un amico, 5 vanno a lui e 5 tornano alla Banca. Avete 10 minuti per fare scambi 'esentasse' prima che scatti il prelievo forzoso!",
+            AUSTERITY: "EDITTO REALE! Il Re (il giocatore più ricco) ha appena ottenuto il potere di emettere un 'Decreto di Austerity'. Per i prossimi 15 minuti, il Re può scegliere un'attività (es. parlare, stare seduti, usare il telefono) e renderla a pagamento: chiunque la compia deve versare 2 BGC direttamente nelle casse del Re. Il Re però deve pagare alla Banca una 'Tassa sul Lusso' di 15 BGC per attivare questo potere."
         };
 
         function updateUI() {
@@ -111,7 +130,7 @@
             const currentSelection = selector.value;
             
             list.innerHTML = '';
-            selector.innerHTML = '<option value="">Seleziona il tuo nome...</option>';
+            selector.innerHTML = '<option value="">Chi sei?</option>';
             
             let m0 = 0;
             const maxBalance = Math.max(...players.map(p => p.balance));
@@ -124,7 +143,7 @@
                 let statusClass = "text-gray-500";
                 
                 if (p.balance <= 0) {
-                    statusText = "Poraccio [cite: 165]";
+                    statusText = "Poraccio";
                     statusClass = "text-red-500 font-bold";
                 } else if (p.balance === maxBalance && !allSame) {
                     statusText = "Riccone [cite: 87]";
@@ -157,6 +176,26 @@
             document.getElementById('tdi-total').innerText = tdiBalance;
         }
 
+        function loginUser() {
+            const id = document.getElementById('user-selector').value;
+            const pass = document.getElementById('user-pass').value;
+            if(!id) return alert("Seleziona il tuo nome!");
+            
+            const player = players.find(p => p.id == id);
+            if(player.pass === pass) {
+                document.getElementById('login-zone').classList.add('hidden');
+                document.getElementById('edit-profile-zone').classList.remove('hidden');
+            } else {
+                alert("Password Errata!");
+            }
+        }
+
+        function logoutUser() {
+            document.getElementById('login-zone').classList.remove('hidden');
+            document.getElementById('edit-profile-zone').classList.add('hidden');
+            document.getElementById('user-pass').value = "";
+        }
+
         function updateAvatarFromFile() {
             const userId = document.getElementById('user-selector').value;
             const fileInput = document.getElementById('avatar-file');
@@ -169,14 +208,15 @@
                 const player = players.find(p => p.id == userId);
                 player.avatar = e.target.result;
                 updateUI();
-                alert("Immagine del profilo aggiornata!");
+                alert("Profilo aggiornato!");
+                logoutUser();
             };
             reader.readAsDataURL(fileInput.files[0]);
         }
 
         function checkAuth() {
             if (document.getElementById('bank-pass').value !== BANK_PASSWORD) {
-                alert("🔒 Accesso negato: Solo la Banca può operare[cite: 56].");
+                alert("🔒 Accesso negato: Solo la Banca può operare.");
                 return false;
             }
             return true;
@@ -197,14 +237,14 @@
                 total += tax;
                 return { ...p, balance: p.balance - tax };
             });
-            addLogEntry(`[BANCA]: Tassa di Soggiorno riscossa (-5 BGC a testa). [cite: 112]`, "text-red-500 border-red-700");
+            addLogEntry(`[BANCA]: Tassa di Soggiorno riscossa (-5 BGC a testa).`, "text-red-500 border-red-700");
             updateUI();
         }
 
         function addTDI() {
             if (!checkAuth()) return;
-            tdiBalance += 2; // Marca da bollo 2 BGC [cite: 39]
-            addLogEntry(`[BANCA]: TDI registrata per Contratto Ufficiale (+2 BGC). [cite: 113]`, "text-green-500 border-green-700");
+            tdiBalance += 2; // Marca da bollo 2 BGC 
+            addLogEntry(`[BANCA]: TDI registrata per Contratto Ufficiale (+2 BGC).`, "text-green-500 border-green-700");
             updateUI();
         }
 
