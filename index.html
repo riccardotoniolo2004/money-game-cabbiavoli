@@ -131,24 +131,27 @@
         };
 
         async function fetchData() {
-            try {
-                const { data: pData } = await supabaseClient.from('players').select('*');
-                const { data: sData } = await supabaseClient.from('system_data').select('*').single();
-        
-                // RECUPERA I LOG: Ordinati dal più recente al più vecchio
-                const { data: lData } = await supabaseClient.from('logs')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+    try {
+        // 1. Carica i giocatori (Fondamentale)
+        const { data: pData, error: pErr } = await supabaseClient.from('players').select('*');
+        if (pErr) { console.error("Errore Giocatori:", pErr); return; }
 
-                if (pData) players = pData;
-                if (sData) tdiBalance = sData.tdi_balance;
+        // 2. Carica il sistema (Usa .select() invece di .single() per evitare crash)
+        const { data: sData } = await supabaseClient.from('system_data').select('*');
         
-                // Passiamo lData (i log) alla funzione updateUI
-                updateUI(lData); 
-            } catch (err) { 
-                console.error("Errore sincronizzazione:", err); 
-            }
-        }
+        // 3. Carica i log
+        const { data: lData } = await supabaseClient.from('logs').select('*').order('created_at', { ascending: false });
+
+        // Assegnazione dati con paracadute
+        players = pData || [];
+        tdiBalance = (sData && sData.length > 0) ? sData[0].tdi_balance : 0;
+
+        console.log("Dati caricati con successo:", players.length, "giocatori.");
+        updateUI(lData || []); 
+    } catch (err) {
+        console.error("Errore imprevisto nel caricamento:", err);
+    }
+}
         async function updateUI(logsData) {
             const list = document.getElementById('player-list');
             const selector = document.getElementById('user-selector');
