@@ -14,28 +14,6 @@
         .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; background: #222; border: 1px solid #444; }
     </style>
 </head>
-<script>
-    // 1. DICHIARA LA VARIABILE GLOBALMENTE
-    let supabaseClient;
-    let players = [];
-    let tdiBalance = 0;
-
-    // 2. INIZIALIZZA SUBITO
-    const SUPABASE_URL = 'https://onjfboldsdlrovpcaube.supabase.co'; 
-    const SUPABASE_KEY = 'IL_TUO_TOKEN_ANON_PUBLIC'; // Sostituisci con la tua chiave reale
-
-    try {
-        // Inizializzazione globale
-        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        console.log("Supabase caricato correttamente.");
-    } catch (e) {
-        console.error("Errore nel caricamento della libreria Supabase:", e);
-    }
-
-    const BANK_PASSWORD = "Giulia122!";
-    
-    // ... qui seguono le altre funzioni (fetchData, updateUI, ecc.)
-</script>
 <body class="bg-system font-sans p-4 max-w-2xl mx-auto">
 
     <header class="text-center mb-6">
@@ -54,313 +32,190 @@
         </div>
 
         <div id="edit-profile-zone" class="hidden flex flex-col gap-3 border-t border-blue-800 pt-3 text-center">
-            <label class="text-[9px] uppercase text-gray-400 font-bold italic">Carica foto dalla galleria:</label>
             <input type="file" id="avatar-file" accept="image/*" class="text-xs text-gray-500">
             <button onclick="updateAvatarFromFile()" class="w-full mt-2 bg-blue-700 hover:bg-blue-600 py-2 rounded text-[10px] font-bold uppercase transition">Aggiorna Profilo</button>
-    
-            <hr class="border-gray-800 my-2">
-            <div class="bg-black/40 p-3 rounded border border-blue-900/50 text-left">
+            <div class="bg-black/40 p-3 rounded border border-blue-900/50 text-left mt-2">
                 <h3 class="text-[10px] font-bold text-blue-400 uppercase mb-2 tracking-widest text-center">📜 Registra Atto (TDI)</h3>
-                <div class="flex flex-col gap-2">
-                    <input type="text" id="contract-title" placeholder="Nome Accordo (es: Patto di Ferro)" class="bg-gray-900 border border-gray-700 p-2 rounded text-[10px] outline-none text-white">
-                    <select id="contract-type" class="bg-gray-900 border border-gray-700 p-2 rounded text-[10px] text-white">
-                        <option value="Contratto">Contratto Ufficiale</option>
-                        <option value="SPA">S.p.A. (Max 4 soci)</option>
-                    </select>
-                    <input type="text" id="contract-members" placeholder="Nomi soci/contraenti" class="bg-gray-900 border border-gray-700 p-2 rounded text-[10px] outline-none text-white">
-                    <button onclick="createOfficialAct()" class="bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-2 rounded text-[10px] uppercase shadow-lg transition">Firma e Paga 2 BGC</button>
-                </div>
+                <input type="text" id="contract-title" placeholder="Nome Accordo" class="w-full bg-gray-900 border border-gray-700 p-2 rounded text-[10px] mb-2">
+                <select id="contract-type" class="w-full bg-gray-900 border border-gray-700 p-2 rounded text-[10px] mb-2">
+                    <option value="Contratto">Contratto Ufficiale</option>
+                    <option value="SPA">S.p.A.</option>
+                </select>
+                <input type="text" id="contract-members" placeholder="Nomi soci" class="w-full bg-gray-900 border border-gray-700 p-2 rounded text-[10px] mb-2">
+                <button onclick="createOfficialAct()" class="w-full bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-2 rounded text-[10px] uppercase">Firma (2 BGC)</button>
             </div>
-            <button onclick="logoutUser()" class="text-[9px] text-gray-500 uppercase mt-1 underline">Esci</button>
+            <button onclick="logoutUser()" class="text-[9px] text-gray-500 uppercase mt-2 underline">Esci</button>
         </div>
     </section>
 
     <section class="card p-5 rounded-xl mb-6 border-yellow-900 shadow-2xl">
         <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
             <h2 class="text-xs font-bold text-yellow-500 uppercase tracking-wider">🏛️ Banca Centrale</h2>
-            <input id="bank-pass" type="password" placeholder="Password" class="bg-black text-[10px] p-2 border border-gray-800 rounded w-24 outline-none focus:border-yellow-600 text-white">
+            <input id="bank-pass" type="password" placeholder="Password" class="bg-black text-[10px] p-2 border border-gray-800 rounded w-24 text-white">
         </div>
-        <div class="mb-6 p-3 bg-black/30 rounded border border-gray-800">
-    <label class="text-[9px] uppercase font-bold text-gray-400 block mb-2 text-center italic">Movimenti Manuali (Premi/Multe)</label>
-    <div class="flex flex-col gap-2">
-        <select id="admin-player-select" class="bg-gray-900 border border-gray-700 p-2 rounded text-xs outline-none text-white"></select>
-        <div class="flex gap-2">
-            <input id="admin-amount" type="number" placeholder="Quantità BGC" class="flex-1 bg-gray-900 border border-gray-700 p-2 rounded text-xs outline-none text-white">
-            <button onclick="modifyBalance(true)" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded text-[10px] font-bold uppercase">+</button>
-            <button onclick="modifyBalance(false)" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-[10px] font-bold uppercase">-</button>
-        </div>
-        <input id="admin-reason" type="text" placeholder="Causale (es: Premio sfida, Multa...)" class="bg-gray-900 border border-gray-700 p-2 rounded text-[10px] outline-none italic text-gray-400">
-    </div>
-</div>
-        
         <div class="grid grid-cols-2 gap-3 mb-6 text-center text-xs">
             <div class="p-3 bg-black/50 rounded-lg border border-gray-800">
                 <p class="opacity-50 mb-1 font-bold text-[8px]">Massa M0</p>
                 <p id="total-m0" class="text-xl font-mono accent">0</p>
             </div>
             <div class="p-3 bg-black/50 rounded-lg border border-green-900">
-                <p class="text-green-600 mb-1 font-bold text-[8px]">Bilancio TDI (Bolli)</p>
+                <p class="text-green-600 mb-1 font-bold text-[8px]">Bilancio TDI</p>
                 <p id="tdi-total" class="text-xl font-mono text-green-400">0</p>
             </div>
         </div>
-
-        <div class="space-y-3">
-            <select id="news-preset" class="w-full bg-gray-900 border border-gray-700 p-2 rounded text-xs">
-                <option value="">-- Seleziona Flash News --</option>
-                <option value="ROBIN">Decreto Robin Hood</option>
-                <option value="OPA">Opa Ostile</option>
-                <option value="BOLLA">Bolla Speculativa</option>
-                <option value="COPRIFUOCO">Coprifuoco</option>
-                <option value="AUSTERITY">Austerity del Re</option>
-            </select>
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="publishFlash()" class="bg-blue-800 hover:bg-blue-700 rounded py-2 text-[10px] font-bold uppercase">Flash News</button>
-                <button onclick="applyTax()" class="bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-2 rounded text-[10px] uppercase shadow-lg">Tassa Soggiorno</button>
+        <div class="flex flex-col gap-2">
+            <select id="admin-player-select" class="bg-gray-900 border border-gray-700 p-2 rounded text-xs text-white"></select>
+            <div class="flex gap-2">
+                <input id="admin-amount" type="number" placeholder="BGC" class="flex-1 bg-gray-900 border border-gray-700 p-2 rounded text-xs">
+                <button onclick="modifyBalance(true)" class="bg-green-600 px-4 py-2 rounded">+</button>
+                <button onclick="modifyBalance(false)" class="bg-red-600 px-4 py-2 rounded">-</button>
             </div>
-            <button onclick="addTDI()" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 rounded text-[10px] uppercase shadow-lg">+2 BGC TDI</button>
+            <button onclick="addTDI()" class="w-full bg-green-700 py-2 rounded text-[10px] font-bold uppercase">+2 BGC TDI</button>
         </div>
     </section>
 
-    <section class="card p-4 rounded-xl mb-6 shadow-2xl bg-black/30">
-        <h2 class="text-[11px] font-bold mb-3 accent italic tracking-widest uppercase text-center">📜 Gazzetta Ufficiale</h2>
-        <div id="public-log" class="text-[11px] space-y-2 h-64 overflow-y-auto bg-black/60 p-4 rounded-lg border border-gray-800 font-mono shadow-inner custom-scrollbar">
-     </div>
-             <div class="log-entry text-gray-500 italic">[SISTEMA]: Bilancio Cabbiavoli online.</div>
-        </div>
+    <section class="card p-4 rounded-xl mb-6 bg-black/30">
+        <h2 class="text-[11px] font-bold mb-3 accent uppercase text-center">📜 Gazzetta Ufficiale</h2>
+        <div id="public-log" class="text-[11px] h-48 overflow-y-auto bg-black/60 p-4 rounded-lg border border-gray-800 font-mono"></div>
     </section>
 
     <section class="card p-4 rounded-xl">
-        <h2 class="text-[11px] font-bold mb-4 uppercase tracking-widest text-gray-400 border-b border-gray-800 pb-2 text-center text-xs italic">Bilancio Cittadini</h2>
+        <h2 class="text-[11px] font-bold mb-4 uppercase text-center italic">Bilancio Cittadini</h2>
         <div id="player-list" class="space-y-3"></div>
     </section>
 
     <script>
-        // --- CONFIGURAZIONE SUPABASE ---
-        const SUPABASE_URL = 'https://onjfboldsdlrovpcaube.supabase.co'; 
-        const SUPABASE_KEY = 'sb_publishable_TZOQLG8STEdPv3gg6I5xxw_Fr218qcg';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        const BANK_PASSWORD = "Giulia122!";
+        // --- INIZIALIZZAZIONE GLOBALE ---
+        let supabaseClient;
         let players = [];
         let tdiBalance = 0;
+        const BANK_PASSWORD = "Giulia122!";
 
-        const DECRETI_TEXT = {
-            ROBIN: "ATTENZIONE! La Banca Centrale annuncia una correzione di mercato. Da questo momento e per i prossimi 30 minuti, chiunque possieda meno di 15 BGC può sfidare un giocatore che ne possiede più di 40 in una sfida 'Sasso-Carta-Forbice' secca. Se il povero vince, ruba 5 BGC. Se perde, non succede nulla. Il ricco non può rifiutare la sfida!",
-            OPA: "FLASH NEWS! È stata aperta una finestra di acquisizione. Per la prossima ora, è legale 'comprare' il diritto di parola di un altro giocatore. Se versi alla Banca 15 BGC, puoi nominare un avversario: quella persona non potrà partecipare a nessuna trattativa o accordo per i prossimi 20 minuti. Il bersaglio può annullare l'effetto solo pagando alla Banca una 'Tassa di Svincolo' di 20 BGC",
-            BOLLA: "URGENTE! La Banca Centrale ha emesso 3 'Titoli di Stato' speciali. Questi titoli costano 10 BGC l'uno. Chi li acquista ora, potrà usarli stasera durante il Casinò Clandestino per raddoppiare una qualsiasi vincita. Attenzione: ci sono solo 3 titoli disponibili! Vince chi arriva per primo con i soldi in mano davanti alla Banca!",
-            COPRIFUOCO: "EDITTO NOTTURNO! Dalle 22:00 a mezzanotte, la Banca chiude i forzieri. In questo lasso di tempo, i trasferimenti di denaro tra giocatori sono tassati del 50%. Se vuoi dare 10 BGC a un amico, 5 vanno a lui e 5 tornano alla Banca. Avete 10 minuti per fare scambi 'esentasse' prima che scatti il prelievo forzoso!",
-            AUSTERITY: "EDITTO REALE! Il Re (il giocatore più ricco) ha appena ottenuto il potere di emettere un 'Decreto di Austerity'. Per i prossimi 15 minuti, il Re può scegliere un'attività (es. parlare, stare seduti, usare il telefono) e renderla a pagamento: chiunque la compia deve versare 2 BGC direttamente nelle casse del Re. Il Re però deve pagare alla Banca una 'Tassa sul Lusso' di 15 BGC per attivare questo potere."
-        };
+        // Sostituisci con le tue chiavi reali
+        const SUPABASE_URL = 'https://onjfboldsdlrovpcaube.supabase.co'; 
+        const SUPABASE_KEY = 'IL_TUO_TOKEN_ANON_PUBLIC'; 
 
-        async function fetchData() {
-    try {
-        // 1. Carica i giocatori (Fondamentale)
-        const { data: pData, error: pErr } = await supabaseClient.from('players').select('*');
-        if (pErr) { console.error("Errore Giocatori:", pErr); return; }
-
-        // 2. Carica il sistema (Usa .select() invece di .single() per evitare crash)
-        const { data: sData } = await supabaseClient.from('system_data').select('*');
-        
-        // 3. Carica i log
-        const { data: lData } = await supabaseClient.from('logs').select('*').order('created_at', { ascending: false });
-
-        // Assegnazione dati con paracadute
-        players = pData || [];
-        tdiBalance = (sData && sData.length > 0) ? sData[0].tdi_balance : 0;
-
-        console.log("Dati caricati con successo:", players.length, "giocatori.");
-        updateUI(lData || []); 
-    } catch (err) {
-        console.error("Errore imprevisto nel caricamento:", err);
-    }
-}
-        async function updateUI(logsData) {
-            const list = document.getElementById('player-list');
-            const selector = document.getElementById('user-selector');
-            const selectorAdmin = document.getElementById('admin-player-select');
-            const logContainer = document.getElementById('public-log');
-                logContainer.innerHTML = ''; // Svuota la finestra
-                if (logsData) {
-                    logsData.forEach(log => {
-                        const div = document.createElement('div');
-                        // Mantiene lo stile originale (colore/bordo) salvato nel DB
-                        div.className = `log-entry p-2 rounded ${log.style_class} mb-2`;
-                        div.innerText = log.description;
-                        logContainer.appendChild(div);
-                    });
-                }
-    
-            const currentSel = selector.value;
-            const currentAdminSel = selectorAdmin.value;
-            const logContainer = document.getElementById('public-log');
-            logContainer.innerHTML = ''; // Puliamo i log temporanei per ricaricare quelli dal DB
-            if (logsData) {
-                logsData.forEach(log => {
-                    const div = document.createElement('div');
-                    // Applichiamo la classe salvata (es: text-green-400) per mantenere i colori originali
-                    div.className = `log-entry p-2 rounded ${log.style_class}`;
-                    div.innerText = log.description;
-                    logContainer.appendChild(div);
-                });
-            }
-        
-    // 1. NUOVA RIGA: Recuperiamo i contratti dal database
-            const { data: activeContracts } = await supabaseClient.from('contracts').select('*');
-
-            list.innerHTML = '';
-            selector.innerHTML = '<option value="">Chi sei?</option>';
-            selectorAdmin.innerHTML = '<option value="">Seleziona Giocatore...</option>';
-    
-            let m0 = 0;
-            const maxBal = Math.max(...players.map(p => p.balance));
-            const allSame = players.length > 0 && players.every(p => p.balance === players[0].balance);
-
-            players.sort((a, b) => b.balance - a.balance).forEach(p => {
-                m0 += p.balance;
-                
-        // 2. NUOVA LOGICA: Filtriamo i contratti di questo specifico giocatore (p)
-                const userActs = activeContracts ? activeContracts.filter(c => 
-                    c.members.toLowerCase().includes(p.name.toLowerCase()) || c.creator_id == p.id
-                ) : [];
-
-        // Trasformiamo i contratti in piccole etichette blu
-                let actsHtml = userActs.map(c => 
-                    `<span class="bg-blue-900/40 text-blue-300 px-1 rounded text-[7px] border border-blue-800 mr-1 font-bold italic">${c.title}</span>`
-                ).join('');
-
-                let statusText = "Cittadino", statusClass = "text-gray-500";
-                if (p.balance <= 0) { statusText = "Poraccio"; statusClass = "text-red-500 font-bold italic"; }
-                else if (p.balance === maxBal && !allSame) { statusText = "Riccone"; statusClass = "text-yellow-500 font-bold"; }
-
-        // 3. AGGIORNAMENTO HTML: Inseriamo ${actsHtml} sotto il nome
-                list.innerHTML += `
-                    <div class="flex justify-between items-center bg-gray-900/50 p-3 rounded-lg border border-gray-800">
-                        <div class="flex items-center gap-3">
-                            <img src="${p.avatar || 'https://www.gravatar.com/avatar/0?d=mp'}" class="avatar">
-                            <div>
-                                <span class="text-sm font-bold">${p.name}</span>
-                                <p class="text-[9px] uppercase tracking-tighter ${statusClass}">${statusText}</p>
-                                <div class="mt-1 flex flex-wrap">${actsHtml}</div> </div>
-                        </div>
-                        <div class="text-right font-mono font-bold accent text-lg">${p.balance} <span class="text-[9px] opacity-30 italic">BGC</span></div>
-                    </div>`;
-            
-        // ... resto della funzione (popolamento selettori) ...
-                const opt = document.createElement('option');
-                opt.value = p.id; opt.innerText = p.name;
-                if (p.id == currentSel) opt.selected = true;
-                selector.appendChild(opt);
-                const optAdmin = document.createElement('option');
-                optAdmin.value = p.id;
-                optAdmin.innerText = p.name;
-                if (p.id == currentAdminSel) optAdmin.selected = true;
-                selectorAdmin.appendChild(optAdmin);
-            });
-    
-            document.getElementById('total-m0').innerText = m0;
-            document.getElementById('tdi-total').innerText = tdiBalance;
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            window.supabaseClient = supabaseClient; // Forza visibilità globale
+        } catch (e) {
+            console.error("Errore inizializzazione Supabase:", e);
         }
 
-        function loginUser() {
+        async function fetchData() {
+            try {
+                const { data: pData } = await supabaseClient.from('players').select('*');
+                const { data: sData } = await supabaseClient.from('system_data').select('*');
+                const { data: lData } = await supabaseClient.from('logs').select('*').order('created_at', { ascending: false });
+                const { data: cData } = await supabaseClient.from('contracts').select('*');
+
+                players = pData || [];
+                tdiBalance = (sData && sData.length > 0) ? sData[0].tdi_balance : 0;
+
+                updateUI(lData, cData);
+            } catch (err) {
+                console.error("Errore fetch:", err);
+            }
+        }
+
+        function updateUI(logs, contracts) {
+            const list = document.getElementById('player-list');
+            const selector = document.getElementById('user-selector');
+            const adminSelector = document.getElementById('admin-player-select');
+            const logBox = document.getElementById('public-log');
+
+            // Render Log
+            logBox.innerHTML = '';
+            logs?.forEach(l => {
+                logBox.innerHTML += `<div class="log-entry p-1 mb-1 rounded ${l.style_class}">${l.description}</div>`;
+            });
+
+            // Calcolo Massa M0
+            let m0 = players.reduce((sum, p) => sum + p.balance, 0);
+            document.getElementById('total-m0').innerText = m0;
+            document.getElementById('tdi-total').innerText = tdiBalance;
+
+            // Render Players
+            const curUser = selector.value;
+            list.innerHTML = '';
+            selector.innerHTML = '<option value="">Chi sei?</option>';
+            adminSelector.innerHTML = '<option value="">Seleziona...</option>';
+
+            players.sort((a,b) => b.balance - a.balance).forEach(p => {
+                const userActs = contracts?.filter(c => c.members.includes(p.name)) || [];
+                const actsHtml = userActs.map(c => `<span class="text-[7px] bg-blue-900 px-1 mr-1">${c.title}</span>`).join('');
+
+                list.innerHTML += `
+                    <div class="flex justify-between items-center bg-gray-900 p-2 rounded border border-gray-800">
+                        <div class="flex items-center gap-2">
+                            <img src="${p.avatar || 'https://www.gravatar.com/avatar/0?d=mp'}" class="avatar">
+                            <div><p class="text-xs font-bold">${p.name}</p>${actsHtml}</div>
+                        </div>
+                        <div class="accent font-mono">${p.balance} BGC</div>
+                    </div>`;
+                
+                selector.innerHTML += `<option value="${p.id}" ${p.id == curUser ? 'selected' : ''}>${p.name}</option>`;
+                adminSelector.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+            });
+        }
+
+        async function loginUser() {
             const id = document.getElementById('user-selector').value;
             const pass = document.getElementById('user-pass').value;
-            const player = players.find(p => p.id == id);
-            if(player && player.pass === pass) {
+            const p = players.find(x => x.id == id);
+            if(p && p.pass === pass) {
                 document.getElementById('login-zone').classList.add('hidden');
                 document.getElementById('edit-profile-zone').classList.remove('hidden');
-            } else { alert("Password Errata!"); }
+            } else alert("Password Errata");
         }
 
         function logoutUser() {
             document.getElementById('login-zone').classList.remove('hidden');
             document.getElementById('edit-profile-zone').classList.add('hidden');
-            document.getElementById('user-pass').value = "";
         }
 
-        async function updateAvatarFromFile() {
-            const userId = document.getElementById('user-selector').value;
-            const file = document.getElementById('avatar-file').files[0];
-            if(!file) return alert("Seleziona un file!");
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                await supabaseClient.from('players').update({ avatar: e.target.result }).eq('id', userId);
-                fetchData();
-                alert("Avatar aggiornato!");
-                logoutUser();
-            };
-            reader.readAsDataURL(file);
-        }
-
-        async function modifyBalance(isAdd) {
-            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("🔒 Solo Banca");
-            const pId = document.getElementById('admin-player-select').value;
-            const amount = parseInt(document.getElementById('admin-amount').value);
-            const reason = document.getElementById('admin-reason').value || "Movimento Manuale";
-            if (!pId || isNaN(amount)) return alert("Dati incompleti");
-
-            const player = players.find(p => p.id == pId);
-            const newBalance = isAdd ? player.balance + amount : Math.max(0, player.balance - amount);
-    
-            const { error } = await supabaseClient.from('players').update({ balance: newBalance }).eq('id', pId);
-            if (!error) {
-                addLogEntry(`[${isAdd ? 'BONIFICO' : 'SEQUESTRO'}]: ${player.name} (${isAdd ? '+' : '-'}${amount} BGC). ${reason}`, isAdd ? "text-green-400 border-green-600" : "text-orange-400 border-orange-600");
-                document.getElementById('admin-amount').value = "";
-                document.getElementById('admin-reason').value = "";
-            }
-        }
-
-        async function applyTax() {
-            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("Solo Banca");
-            for (let p of players) {
-                await supabaseClient.from('players').update({ balance: Math.max(0, p.balance - 5) }).eq('id', p.id);
-            }
-            addLogEntry(`[BANCA]: Tassa Soggiorno (-5 BGC).`, "text-red-500 font-bold border-red-700");
-        }
-
-        async function addTDI() {
-            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("Solo Banca");
-            await supabaseClient.from('system_data').update({ tdi_balance: tdiBalance + 2 }).eq('id', 1);
-            addLogEntry(`[BANCA]: TDI registrata (+2 BGC).`, "text-green-500 font-bold border-green-700");
-        }
-
-        async function addLogEntry(text, classes) {
-            await supabaseClient.from('logs').insert([{ description: text, style_class: classes }]);
+        async function addLogEntry(txt, cls) {
+            await supabaseClient.from('logs').insert([{ description: txt, style_class: cls }]);
             fetchData();
         }
 
-        function publishFlash() {
-            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("Solo Banca");
-            const key = document.getElementById('news-preset').value;
-            if (key) addLogEntry(`[FLASH]: ${DECRETI_TEXT[key]}`, "text-blue-400 border-blue-500 font-bold bg-blue-900/10");
+        async function modifyBalance(isAdd) {
+            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("No Banca");
+            const id = document.getElementById('admin-player-select').value;
+            const amt = parseInt(document.getElementById('admin-amount').value);
+            const p = players.find(x => x.id == id);
+            const newBal = isAdd ? p.balance + amt : Math.max(0, p.balance - amt);
+            
+            await supabaseClient.from('players').update({ balance: newBal }).eq('id', id);
+            addLogEntry(`[BANCA]: ${p.name} ${isAdd ? '+' : '-'}${amt} BGC`, isAdd ? 'text-green-400' : 'text-red-400');
+        }
+
+        async function addTDI() {
+            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("No Banca");
+            await supabaseClient.from('system_data').update({ tdi_balance: tdiBalance + 2 }).eq('id', 1);
+            addLogEntry(`[BANCA]: Registrata TDI (+2 BGC)`, 'text-green-400 font-bold');
         }
 
         async function createOfficialAct() {
-            const userId = document.getElementById('user-selector').value;
+            const id = document.getElementById('user-selector').value;
             const title = document.getElementById('contract-title').value;
-            const type = document.getElementById('contract-type').value;
-            const members = document.getElementById('contract-members').value;
-            const player = players.find(p => p.id == userId);
+            const p = players.find(x => x.id == id);
+            
+            if(p.balance < 2) return alert("Povero!");
 
-            if (!title || !members) return alert("Dati incompleti!");
-            if (!player || player.balance < 2) return alert("Saldo insufficiente (2 BGC)!");
-
-            await supabaseClient.from('players').update({ balance: player.balance - 2 }).eq('id', userId);
+            await supabaseClient.from('players').update({ balance: p.balance - 2 }).eq('id', id);
             await supabaseClient.from('system_data').update({ tdi_balance: tdiBalance + 2 }).eq('id', 1);
-
-            const { error } = await supabaseClient.from('contracts').insert([{ 
-                title: title, 
-                type: type, 
-                creator_id: userId, 
-                members: members 
+            await supabaseClient.from('contracts').insert([{ 
+                title, 
+                type: document.getElementById('contract-type').value, 
+                members: document.getElementById('contract-members').value,
+                creator_id: id 
             }]);
-
-            if (!error) {
-                addLogEntry(`[GAZZETTA]: Registrato ${type} "${title}" tra: ${members}.`, "text-blue-400 border-blue-500 font-bold bg-blue-900/10");
-                alert("Atto Registrato!");
-            }
+            
+            addLogEntry(`[GAZZETTA]: Nuovo atto "${title}"`, 'text-blue-400');
         }
 
-        // Sincronizzazione automatica ogni 10 secondi
+        // Avvio
         fetchData();
         setInterval(fetchData, 10000);
     </script>
