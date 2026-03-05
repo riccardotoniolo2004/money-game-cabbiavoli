@@ -260,78 +260,54 @@
             reader.onload = async (e) => {
                 await supabaseClient.from('players').update({ avatar: e.target.result }).eq('id', userId);
                 fetchData();
-                alert("Avatar aggiornato globalmente!");
+                alert("Avatar aggiornato!");
                 logoutUser();
             };
             reader.readAsDataURL(file);
         }
+
         async function modifyBalance(isAdd) {
-            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) {
-                return alert("🔒 Solo la Banca Centrale può modificare i saldi.");
-            }
+            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("🔒 Solo Banca");
             const pId = document.getElementById('admin-player-select').value;
             const amount = parseInt(document.getElementById('admin-amount').value);
             const reason = document.getElementById('admin-reason').value || "Movimento Manuale";
-            if (!pId || isNaN(amount)) return alert("Seleziona giocatore e importo!");
+            if (!pId || isNaN(amount)) return alert("Dati incompleti");
 
             const player = players.find(p => p.id == pId);
             const newBalance = isAdd ? player.balance + amount : Math.max(0, player.balance - amount);
     
             const { error } = await supabaseClient.from('players').update({ balance: newBalance }).eq('id', pId);
             if (!error) {
-                addLogEntry(`[${isAdd ? 'BONIFICO' : 'SEQUESTRO'}]: ${player.name} (${isAdd ? '+' : '-'}${amount} BGC). Motivo: ${reason}`, isAdd ? "text-green-400 border-green-600" : "text-orange-400 border-orange-600");
+                addLogEntry(`[${isAdd ? 'BONIFICO' : 'SEQUESTRO'}]: ${player.name} (${isAdd ? '+' : '-'}${amount} BGC). ${reason}`, isAdd ? "text-green-400 border-green-600" : "text-orange-400 border-orange-600");
                 document.getElementById('admin-amount').value = "";
                 document.getElementById('admin-reason').value = "";
-                fetchData();
             }
         }
+
         async function applyTax() {
-            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("Solo la Banca può tassare!");
+            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("Solo Banca");
             for (let p of players) {
                 await supabaseClient.from('players').update({ balance: Math.max(0, p.balance - 5) }).eq('id', p.id);
             }
-            addLogEntry(`[BANCA]: Tassa Soggiorno riscossa (-5 BGC a testa).`, "text-red-500 font-bold border-red-700");
-            fetchData();
+            addLogEntry(`[BANCA]: Tassa Soggiorno (-5 BGC).`, "text-red-500 font-bold border-red-700");
         }
 
         async function addTDI() {
-            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("Riservato alla Banca!");
+            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("Solo Banca");
             await supabaseClient.from('system_data').update({ tdi_balance: tdiBalance + 2 }).eq('id', 1);
             addLogEntry(`[BANCA]: TDI registrata (+2 BGC).`, "text-green-500 font-bold border-green-700");
-            fetchData();
-                async function addLogEntry(text, classes) {
-                // 1. Salvataggio permanente nel Database nella tabella 'logs'
-                // Salviamo la descrizione dell'evento e la classe CSS (colore/bordo)
-                const { error } = await supabaseClient.from('logs').insert([{ 
-                    description: text, 
-                    style_class: classes 
-                }]);
+        }
 
-                // Se c'è un errore di connessione o permessi RLS, lo segnala in console
-                if (error) {
-                    console.error("Errore salvataggio log nel DB:", error);
-                }
-    
-                // 2. Ricarichiamo i dati: questo farà sì che fetchData chiami updateUI
-                // e mostri il nuovo log a TUTTI i giocatori connessi
-                fetchData();
-            }
+        async function addLogEntry(text, classes) {
+            await supabaseClient.from('logs').insert([{ description: text, style_class: classes }]);
+            fetchData();
         }
 
         function publishFlash() {
-            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("Solo la Banca!");
+            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("Solo Banca");
             const key = document.getElementById('news-preset').value;
             if (key) addLogEntry(`[FLASH]: ${DECRETI_TEXT[key]}`, "text-blue-400 border-blue-500 font-bold bg-blue-900/10");
         }
-
-        function addLogEntry(text, classes) {
-            const log = document.getElementById('public-log');
-            const entry = document.createElement('div');
-            entry.className = `log-entry p-2 rounded ${classes}`;
-            entry.innerText = text;
-            log.prepend(entry);
-        }
-        // ... riga 190: fine funzione addLogEntry
 
         async function createOfficialAct() {
             const userId = document.getElementById('user-selector').value;
@@ -341,25 +317,21 @@
             const player = players.find(p => p.id == userId);
 
             if (!title || !members) return alert("Dati incompleti!");
-            if (player.balance < 2) return alert("Saldo insufficiente per la marca da bollo (2 BGC)!");
+            if (!player || player.balance < 2) return alert("Saldo insufficiente (2 BGC)!");
 
-            // Sottrazione 2 BGC e incremento TDI Banca [cite: 39, 113]
             await supabaseClient.from('players').update({ balance: player.balance - 2 }).eq('id', userId);
             await supabaseClient.from('system_data').update({ tdi_balance: tdiBalance + 2 }).eq('id', 1);
 
-            // Registrazione atto (Tabella 'contracts')
             const { error } = await supabaseClient.from('contracts').insert([{ 
                 title: title, 
                 type: type, 
                 creator_id: userId, 
-                members: members,
-                expires_at: new Date(new Date().setHours(23,59,59)) 
+                members: members 
             }]);
 
             if (!error) {
                 addLogEntry(`[GAZZETTA]: Registrato ${type} "${title}" tra: ${members}.`, "text-blue-400 border-blue-500 font-bold bg-blue-900/10");
                 alert("Atto Registrato!");
-                fetchData();
             }
         }
 
