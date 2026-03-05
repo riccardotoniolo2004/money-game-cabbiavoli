@@ -141,7 +141,14 @@
                 
                 let statusText = "Cittadino";
                 let statusClass = "text-gray-500";
-                
+                <script>
+
+    const SUPABASE_URL = 'https://onjfboldsdlrovpcaube.supabase.co'; // Incolla il Project URL
+    const SUPABASE_KEY = 'sb_publishable_TZOQLG8STEdPv3gg6I5xxw_Fr218qcg';      // Incolla la Publishable key
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const BANK_PASSWORD = "Giulia122!";
+            
                 if (p.balance <= 0) {
                     statusText = "Poraccio";
                     statusClass = "text-red-500 font-bold";
