@@ -133,19 +133,34 @@
             try {
                 const { data: pData } = await supabaseClient.from('players').select('*');
                 const { data: sData } = await supabaseClient.from('system_data').select('*').single();
-                
+                // NOVITÀ: Scarica i log ordinati dal più recente
+                const { data: lData } = await supabaseClient.from('logs').select('*').order('created_at', { ascending: false });
+        
                 if (pData) players = pData;
                 if (sData) tdiBalance = sData.tdi_balance;
-                updateUI();
+        
+                // Passiamo i log alla funzione di aggiornamento
+                updateUI(lData); 
             } catch (err) { console.error("Errore sincronizzazione:", err); }
         }
-        async function updateUI() {
+        async function updateUI(logsData) {
             const list = document.getElementById('player-list');
             const selector = document.getElementById('user-selector');
             const selectorAdmin = document.getElementById('admin-player-select');
     
             const currentSel = selector.value;
             const currentAdminSel = selectorAdmin.value;
+            const logContainer = document.getElementById('public-log');
+            logContainer.innerHTML = ''; // Puliamo i log temporanei per ricaricare quelli dal DB
+            if (logsData) {
+                logsData.forEach(log => {
+                    const div = document.createElement('div');
+                    // Applichiamo la classe salvata (es: text-green-400) per mantenere i colori originali
+                    div.className = `log-entry p-2 rounded ${log.style_class}`;
+                    div.innerText = log.description;
+                    logContainer.appendChild(div);
+                });
+            }
         
     // 1. NUOVA RIGA: Recuperiamo i contratti dal database
             const { data: activeContracts } = await supabaseClient.from('contracts').select('*');
@@ -267,6 +282,23 @@
             await supabaseClient.from('system_data').update({ tdi_balance: tdiBalance + 2 }).eq('id', 1);
             addLogEntry(`[BANCA]: TDI registrata (+2 BGC).`, "text-green-500 font-bold border-green-700");
             fetchData();
+                async function addLogEntry(text, classes) {
+                // 1. Salvataggio permanente nel Database nella tabella 'logs'
+                // Salviamo la descrizione dell'evento e la classe CSS (colore/bordo)
+                const { error } = await supabaseClient.from('logs').insert([{ 
+                    description: text, 
+                    style_class: classes 
+                }]);
+
+                // Se c'è un errore di connessione o permessi RLS, lo segnala in console
+                if (error) {
+                    console.error("Errore salvataggio log nel DB:", error);
+                }
+    
+                // 2. Ricarichiamo i dati: questo farà sì che fetchData chiami updateUI
+                // e mostri il nuovo log a TUTTI i giocatori connessi
+                fetchData();
+            }
         }
 
         function publishFlash() {
