@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE MONEY GAME - Cabbiavoli Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .bg-system { background-color: #0d0d0d; color: #e5e5e5; }
+        .card { background-color: #1a1a1a; border: 1px solid #333; }
+        .accent { color: #ffd700; } 
+        .log-entry { border-left: 3px solid #444; padding-left: 10px; margin-bottom: 6px; }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; background: #222; border: 1px solid #444; }
+    </style>
+</head>
+<body class="bg-system font-sans p-4 max-w-2xl mx-auto">
+
+    <header class="text-center mb-6">
+        <h1 class="text-3xl font-bold accent tracking-widest uppercase">The Money Game</h1>
+        <p class="text-[10px] opacity-60 uppercase tracking-widest">Protocollo Operativo Cabbiavoli [cite: 24]</p>
+    </header>
+
+    <section class="card p-4 rounded-xl mb-6 border-blue-900 bg-blue-900/10 shadow-lg">
+        <h2 class="text-[11px] font-bold mb-3 text-blue-400 uppercase tracking-widest">👤 Area Personale</h2>
+        <div class="flex flex-col gap-4">
+            <select id="user-selector" class="bg-gray-900 border border-gray-700 p-2 rounded text-xs outline-none focus:border-blue-500">
+                <option value="">Seleziona il tuo nome...</option>
+                </select>
+            <div class="flex flex-col gap-2">
+                <label for="avatar-file" class="text-[9px] uppercase text-gray-400 font-bold">Carica foto dalla galleria:</label>
+                <input type="file" id="avatar-file" accept="image/*" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500">
+                <button onclick="updateAvatarFromFile()" class="w-full mt-2 bg-blue-700 hover:bg-blue-600 py-2 rounded text-[10px] font-bold uppercase transition">Aggiorna Profilo</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="card p-5 rounded-xl mb-6 border-yellow-900 shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xs font-bold text-yellow-500 uppercase tracking-wider">🏛️ Banca Centrale [cite: 108]</h2>
+            <input id="bank-pass" type="password" placeholder="Password" class="bg-black text-[10px] p-2 border border-gray-800 rounded w-24 outline-none focus:border-yellow-600">
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3 mb-6 text-center text-xs">
+            <div class="p-3 bg-black/50 rounded-lg border border-gray-800">
+                <p class="opacity-50 mb-1">Massa M0 [cite: 104]</p>
+                <p id="total-m0" class="text-xl font-mono accent">0</p>
+            </div>
+            <div class="p-3 bg-black/50 rounded-lg border border-green-900">
+                <p class="text-green-600 mb-1">TDI (Bolli) [cite: 39]</p>
+                <p id="tdi-total" class="text-xl font-mono text-green-400">0</p>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <select id="news-preset" class="w-full bg-gray-900 border border-gray-700 p-2 rounded text-xs">
+                <option value="">-- Seleziona Flash News [cite: 144] --</option>
+                <option value="ROBIN">Decreto Robin Hood [cite: 145]</option>
+                <option value="OPA">Opa Ostile [cite: 147]</option>
+                <option value="BOLLA">Bolla Speculativa [cite: 149]</option>
+                <option value="COPRIFUOCO">Coprifuoco [cite: 151]</option>
+                <option value="AUSTERITY">Austerity del Re [cite: 153]</option>
+            </select>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="publishFlash()" class="bg-blue-800 hover:bg-blue-700 rounded py-2 text-[10px] font-bold uppercase">Flash News</button>
+                <button onclick="applyTax()" class="bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-2 rounded text-[10px] uppercase">Tassa Soggiorno [cite: 29]</button>
+            </div>
+            <button onclick="addTDI()" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 rounded text-[10px] uppercase">+2 BGC TDI [cite: 39]</button>
+        </div>
+    </section>
+
+    <section class="card p-4 rounded-xl mb-6 shadow-2xl bg-black/30">
+        <h2 class="text-[11px] font-bold mb-3 accent italic tracking-widest uppercase">📜 Gazzetta Ufficiale</h2>
+        <div id="public-log" class="text-[11px] space-y-2 h-32 overflow-y-auto bg-black/60 p-4 rounded-lg border border-gray-800 font-mono">
+            <div class="log-entry text-gray-500 italic">[SISTEMA]: Benvenuti al Money Game: Cabbiavoli Edition. Nessun rimborso[cite: 31].</div>
+        </div>
+    </section>
+
+    <section class="card p-4 rounded-xl">
+        <h2 class="text-[11px] font-bold mb-4 uppercase tracking-widest text-gray-400 border-b border-gray-800 pb-2 text-center">Anagrafe dei Cittadini [cite: 186]</h2>
+        <div id="player-list" class="space-y-3"></div>
+    </section>
+
+    <script>
+        const BANK_PASSWORD = "CABBIAVOLI2026";
+        const playerNames = [
+            "Elisa Prastaro", "Stefano Selleri", "Tommaso Ronzi", "Tommaso Ripamonti",
+            "Vittoria Rametta", "Stefano Rovere", "Giovanni Pressacco", "Riccardo Toniolo",
+            "Leonardo Poschi", "Andrea Riva", "Cesare Puccioni", "Chiara Zanetti", "Ludovica Serra"
+        ];
+
+        let players = playerNames.map((name, index) => ({
+            id: index,
+            name: name,
+            balance: 50, // Dotazione iniziale [cite: 106]
+            avatar: ""
+        }));
+
+        let tdiBalance = 0;
+
+        const DECRETI_TEXT = {
+            ROBIN: "DECRETO ROBIN HOOD: Sfida secca Sasso-Carta-Forbice tra poveri e ricchi! [cite: 145]",
+            OPA: "OPA OSTILE: Compra il diritto di parola per 15 BGC! [cite: 147]",
+            BOLLA: "BOLLA SPECULATIVA: 3 Titoli di Stato disponibili a 10 BGC ciascuno! [cite: 149]",
+            COPRIFUOCO: "COPRIFUOCO: Trasferimenti tra giocatori tassati al 50%! [cite: 151]",
+            AUSTERITY: "AUSTERITY DEL RE: Attività (telefono, sedie) a pagamento per 15 min! [cite: 153]"
+        };
+
+        function updateUI() {
+            const list = document.getElementById('player-list');
+            const selector = document.getElementById('user-selector');
+            const currentSelection = selector.value;
+            
+            list.innerHTML = '';
+            selector.innerHTML = '<option value="">Seleziona il tuo nome...</option>';
+            
+            let m0 = 0;
+            const maxBalance = Math.max(...players.map(p => p.balance));
+            const allSame = players.every(p => p.balance === players[0].balance);
+
+            players.sort((a, b) => b.balance - a.balance).forEach(p => {
+                m0 += p.balance;
+                
+                let statusText = "Cittadino";
+                let statusClass = "text-gray-500";
+                
+                if (p.balance <= 0) {
+                    statusText = "Poraccio [cite: 165]";
+                    statusClass = "text-red-500 font-bold";
+                } else if (p.balance === maxBalance && !allSame) {
+                    statusText = "Riccone [cite: 87]";
+                    statusClass = "text-yellow-500 font-bold";
+                }
+
+                list.innerHTML += `
+                    <div class="flex justify-between items-center bg-gray-900/50 p-3 rounded-lg border border-gray-800">
+                        <div class="flex items-center gap-3">
+                            <img src="${p.avatar || 'https://www.gravatar.com/avatar/0?d=mp'}" class="avatar">
+                            <div>
+                                <span class="text-sm font-bold">${p.name}</span>
+                                <p class="text-[9px] uppercase tracking-tighter ${statusClass}">${statusText}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-lg font-mono font-bold accent">${p.balance}</span> <span class="text-[9px] opacity-30">BGC</span>
+                        </div>
+                    </div>
+                `;
+
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.innerText = p.name;
+                if (p.id == currentSelection) opt.selected = true;
+                selector.appendChild(opt);
+            });
+
+            document.getElementById('total-m0').innerText = m0;
+            document.getElementById('tdi-total').innerText = tdiBalance;
+        }
+
+        function updateAvatarFromFile() {
+            const userId = document.getElementById('user-selector').value;
+            const fileInput = document.getElementById('avatar-file');
+            
+            if (!userId) return alert("Seleziona il tuo nome!");
+            if (!fileInput.files || !fileInput.files[0]) return alert("Scegli una foto dalla galleria!");
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const player = players.find(p => p.id == userId);
+                player.avatar = e.target.result;
+                updateUI();
+                alert("Immagine del profilo aggiornata!");
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+
+        function checkAuth() {
+            if (document.getElementById('bank-pass').value !== BANK_PASSWORD) {
+                alert("🔒 Accesso negato: Solo la Banca può operare[cite: 56].");
+                return false;
+            }
+            return true;
+        }
+
+        function publishFlash() {
+            if (!checkAuth()) return;
+            const key = document.getElementById('news-preset').value;
+            if (!key) return;
+            addLogEntry(`[FLASH]: ${DECRETI_TEXT[key]}`, "text-blue-400 border-blue-500 font-bold bg-blue-900/10");
+        }
+
+        function applyTax() {
+            if (!checkAuth()) return;
+            let total = 0;
+            players = players.map(p => {
+                const tax = Math.min(p.balance, 5); // Tassa soggiorno 5 BGC [cite: 29]
+                total += tax;
+                return { ...p, balance: p.balance - tax };
+            });
+            addLogEntry(`[BANCA]: Tassa di Soggiorno riscossa (-5 BGC a testa). [cite: 112]`, "text-red-500 border-red-700");
+            updateUI();
+        }
+
+        function addTDI() {
+            if (!checkAuth()) return;
+            tdiBalance += 2; // Marca da bollo 2 BGC [cite: 39]
+            addLogEntry(`[BANCA]: TDI registrata per Contratto Ufficiale (+2 BGC). [cite: 113]`, "text-green-500 border-green-700");
+            updateUI();
+        }
+
+        function addLogEntry(text, classes) {
+            const log = document.getElementById('public-log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry p-2 rounded ${classes}`;
+            entry.innerText = text;
+            log.prepend(entry);
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
