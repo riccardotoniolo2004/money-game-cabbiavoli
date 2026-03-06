@@ -112,6 +112,17 @@
         const SUPABASE_URL = 'https://onjfboldsdlrovpcaube.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uamZib2xkc2Rscm92cGNhdWJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDY5NzQsImV4cCI6MjA4ODI4Mjk3NH0.QdQEJRJnCeg4nrxyJulrp4_6a5Tyr97H9INXny17JJ0';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const getContractColor = (id) => {
+            const colors = [
+                'bg-blue-900/40 text-blue-300 border-blue-800',
+                'bg-purple-900/40 text-purple-300 border-purple-800',
+                'bg-emerald-900/40 text-emerald-300 border-emerald-800',
+                'bg-rose-900/40 text-rose-300 border-rose-800',
+                'bg-amber-900/40 text-amber-300 border-amber-800',
+                'bg-cyan-900/40 text-cyan-300 border-cyan-800'
+            ];
+            return colors[id % colors.length];
+        };
 
         const BANK_PASSWORD = "Giulia122!";
         let players = [];
@@ -127,18 +138,20 @@
 
         async function fetchData() {
             try {
+                const today = new Date().toISOString().split('T')[0]; 
                 const { data: pData } = await supabaseClient.from('players').select('*');
                 const { data: sData } = await supabaseClient.from('system_data').select('*').single();
-                const { data: lData } = await supabaseClient.from('logs').select('*').order('created_at', { ascending: false });
-                const { data: cData } = await supabaseClient.from('contracts').select('*');
+                const { data: lData } = await supabaseClient.from('logs').select('*').order('created_at', { ascending: false }).limit(40);
+                
+                const { data: cData } = await supabaseClient.from('contracts')
+                    .select('*')
+                    .gte('created_at', `${today}T00:00:00Z`);
 
                 if (pData) players = pData;
                 if (sData) tdiBalance = sData.tdi_balance;
                 
                 updateUI(lData, cData); 
-            } catch (err) { 
-                console.error("Errore sincronizzazione:", err); 
-            }
+            } catch (err) { console.error("Errore sincronizzazione:", err); }
         }
 
         function updateUI(logsData, activeContracts) {
@@ -150,7 +163,6 @@
             const currentSel = selector.value;
             const currentAdminSel = selectorAdmin.value;
 
-            // Update Logs
             logContainer.innerHTML = '';
             if (logsData) {
                 logsData.forEach(log => {
@@ -172,13 +184,15 @@
             players.sort((a, b) => b.balance - a.balance).forEach(p => {
                 m0 += p.balance;
                 
-                const userActs = activeContracts ? activeContracts.filter(c => 
-                    c.members.toLowerCase().includes(p.name.toLowerCase()) || c.creator_id == p.id
-                ) : [];
-
-                let actsHtml = userActs.map(c => 
-                    `<span class="bg-blue-900/40 text-blue-300 px-1 rounded text-[7px] border border-blue-800 mr-1 font-bold italic">${c.title}</span>`
-                ).join('');
+                let actsHtml = "";
+                if (activeContracts) {
+                    const userActs = activeContracts.filter(c => 
+                        c.members.toLowerCase().includes(p.name.toLowerCase())
+                    );
+                    actsHtml = userActs.map(c => 
+                        `<span class="${getContractColor(c.id)} px-1.5 py-0.5 rounded text-[8px] border mr-1 font-bold italic uppercase shadow-sm">${c.title}</span>`
+                    ).join('');
+                }
 
                 let statusText = "Cittadino", statusClass = "text-gray-500";
                 if (p.balance <= 0) { statusText = "Poraccio"; statusClass = "text-red-500 font-bold italic"; }
@@ -189,9 +203,9 @@
                         <div class="flex items-center gap-3">
                             <img src="${p.avatar || 'https://www.gravatar.com/avatar/0?d=mp'}" class="avatar">
                             <div>
-                                <span class="text-sm font-bold">${p.name}</span>
+                                <span class="text-sm font-bold text-white">${p.name}</span>
                                 <p class="text-[9px] uppercase tracking-tighter ${statusClass}">${statusText}</p>
-                                <div class="mt-1 flex flex-wrap">${actsHtml}</div>
+                                <div class="mt-2 flex flex-wrap gap-1">${actsHtml}</div>
                             </div>
                         </div>
                         <div class="text-right font-mono font-bold accent text-lg">${p.balance} <span class="text-[9px] opacity-30 italic">BGC</span></div>
@@ -287,24 +301,31 @@
 
         async function createOfficialAct() {
             const userId = document.getElementById('user-selector').value;
-            const title = document.getElementById('contract-title').value;
+            const title = document.getElementById('contract-title').value.trim();
             const type = document.getElementById('contract-type').value;
-            const members = document.getElementById('contract-members').value;
+            const members = document.getElementById('contract-members').value.trim();
             const player = players.find(p => p.id == userId);
 
-            if (!title || !members) return alert("Dati incompleti!");
-            if (player.balance < 2) return alert("Saldo insufficiente!");
+            if (!title || !members) return alert("⚠️ Dati incompleti!");
+            if (!userId) return alert("⚠️ Chi sei? Sblocca il profilo!");
+            if (player.balance < 2) return alert("❌ Saldo insufficiente (2 BGC)!");
 
-            await supabaseClient.from('players').update({ balance: player.balance - 2 }).eq('id', userId);
-            await supabaseClient.from('system_data').update({ tdi_balance: tdiBalance + 2 }).eq('id', 1);
+            const { error: pErr } = await supabaseClient.from('players').update({ balance: player.balance - 2 }).eq('id', userId);
+            const { error: sErr } = await supabaseClient.from('system_data').update({ tdi_balance: tdiBalance + 2 }).eq('id', 1);
 
-            const { error } = await supabaseClient.from('contracts').insert([{ 
-                title, type, creator_id: userId, members, expires_at: new Date(new Date().setHours(23,59,59)) 
-            }]);
+            if (!pErr && !sErr) {
+                const { error: cErr } = await supabaseClient.from('contracts').insert([{ 
+                    title, type, creator_id: userId, members 
+                }]);
 
-            if (!error) {
-                addLogEntry(`[GAZZETTA]: Registrato ${type} "${title}" tra: ${members}.`, "text-blue-400 border-blue-500 font-bold bg-blue-900/10");
-                alert("Atto Registrato!");
+                if (!cErr) {
+                    await addLogEntry(`[GAZZETTA]: Registrato ${type} "${title.toUpperCase()}" tra: ${members}. Scade a mezzanotte.`, "text-blue-400 border-blue-500 font-bold bg-blue-900/20");
+                    alert(`✅ ATTO REGISTRATO!\n"${title}" è ora attivo.`);
+                    
+                    document.getElementById('contract-title').value = "";
+                    document.getElementById('contract-members').value = "";
+                    fetchData();
+                }
             }
         }
 
