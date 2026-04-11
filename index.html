@@ -282,7 +282,7 @@
         async function applyTax() {
             if (document.getElementById('bank-pass').value !== BANK_PASSWORD) return alert("Solo Banca!");
             for (let p of players) {
-                await supabaseClient.from('players').update({ balance: Math.max(0, p.balance - p.balance*0.1) }).eq('id', p.id);
+                await supabaseClient.from('players').update({ balance: Math.max(0, p.balance*0.9) }).eq('id', p.id);
             }
             addLogEntry(`[BANCA]: Tassa Soggiorno riscossa (10%).`, "text-red-500 font-bold border-red-700");
         }
